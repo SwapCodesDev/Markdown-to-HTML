@@ -73,6 +73,9 @@ def convert_md_to_html(md_path, html_path):
         # 7. Convert links (e.g., [link](url) -> <a href="url">link</a>)
         line = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', line)
 
+        # 8. Line break
+        line = re.sub(r'  +\n', r'<br>\n', line)
+
         write(html_path, line)
 
 
