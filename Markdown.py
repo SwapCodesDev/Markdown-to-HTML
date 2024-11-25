@@ -1,4 +1,6 @@
 import re
+from bs4 import BeautifulSoup
+
 
 def read(path):
     with open(path, 'r') as file:
@@ -78,5 +80,31 @@ def convert_md_to_html(md_path, html_path):
 
 
 
+def beautify_html(file_path):
+    try:
+        # Read the HTML file
+        with open(file_path, "r", encoding="utf-8") as file:
+            content = file.read()
+
+        # Parse and beautify the HTML content
+        soup = BeautifulSoup(content, "html.parser")
+        beautified_html = soup.prettify()
+
+        # Create a new file name for the output
+        output_file = file_path
+
+        # Save the beautified HTML
+        with open(output_file, "w", encoding="utf-8") as file:
+            file.write(beautified_html)
+
+        print(f"Beautified HTML saved to: {output_file}")
+        return output_file
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
 # Example usage
 convert_md_to_html('readme.md', 'example.html')
+beautify_html("example.html")
