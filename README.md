@@ -1,6 +1,6 @@
 # Markdown to HTML convertor using Python
 
-### Task list
+### Features availability
 - [x] Heading
 - [x] Bold
 - [x] Italic
@@ -15,7 +15,7 @@
 - [x] Code Block
 - [ ] Footnote
 - [ ] Heading ID
-- [ ] Definition List
+- [x] Definition List
 - [x] Strikethrough
 - [ ] Task List
 - [ ] Emoji

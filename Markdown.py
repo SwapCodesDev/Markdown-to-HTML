@@ -120,6 +120,7 @@ def convert_to_html(path_md, path_html):
 
     # Initialize variables
     is_code_block = False
+    is_def_list = False
     is_list = False
     is_task_list = False
     is_blockquote = False
@@ -203,9 +204,27 @@ def convert_to_html(path_md, path_html):
             line = convert_url_text(line)
 
         # Definition list
+        if line.startswith(":"):
+            if not is_def_list:
+                if html_content[-2].strip().startswith("</dl>"):
+                    html_content[-2] = f"<dt>{html_content[-1]}</dt>"
+                    html_content.pop()
+                    is_def_list = True
+                else:
+                    html_content[-1] = f"<dl>\n<dt>{html_content[-1]}</dt>"
+                    is_def_list = True
+            if is_def_list:
+                line = f"<dd>{line[1:].strip()}</dd>"
+        else:
+            if is_def_list:
+                html_content.append("</dl>")
+                is_def_list = False
 
         # Append the line
         html_content.append(line.strip())
+
+    if is_def_list:  # Ensure closing <dl> if still in definition list at the end
+        html_content.append("</dl>")
 
     for content in html_content:
         write(path_html, content + '\n', mode='a')
