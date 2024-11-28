@@ -1,0 +1,15 @@
+blockquote {
+    margin: 20px;
+    padding: 10px;
+    border-left: 4px solid #ccc;
+    background-color: #f9f9f9;
+  }
+
+code {
+    background-color: #f4f4f4; /* Light gray background */
+    color: #021e74; /* Dark pink color for the text */
+    padding: 2px 4px; /* Padding around the code */
+    border-radius: 3px; /* Slightly rounded corners */
+    font-family: Consolas, Monaco, monospace; /* Monospace font */
+}
+  

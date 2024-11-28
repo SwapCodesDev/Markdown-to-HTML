@@ -85,7 +85,7 @@ def convert_strikethrough(line):
 
 
 def convert_blockquote(line):
-    return f"<blockquote>{line[1:].strip()}</blockquote>"
+    return f"<blockquote><p>{line[1:].strip()}</p></blockquote>"
 
 
 def convert_subscript(line):
@@ -96,30 +96,62 @@ def convert_superscript(line):
     return re.sub(r"\^(.*?)\^", r"<sup>\1</sup>", line)
 
 
+def convert_highlight(line):
+    return re.sub(r"==(.*?)==", r"<mark>\1</mark>", line)
+
+
+def convert_inline_code(line):
+    return re.sub(r"`(.*?)`", r"<code>\1</code>", line)
+
+
+def convert_url_text(line):
+    return re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', line)
+
+
+def convert_url_image(line):
+    return re.sub(r"!\[([^\]]+)\]\(([^)]+)\)", r'<img src="\2" alt="\1">', line)
+
+
+def convert_horizontal_rule(line):
+    return re.sub(r'---', r'<hr>', line)
+
+
 def convert_to_html(path_md, path_html):
 
     # Initialize variables
     is_code_block = False
     is_list = False
     is_task_list = False
+    is_blockquote = False
     html_content = []
     lines = read(path_md)
-    write(path_html, "<!-- Markdown to HTML -->\n")
+    write(path_html, f"<!-- Markdown to HTML -->\n<link rel='stylesheet' href='example.css'>\n")
 
     # Convert the markdown to HTML
     for line in lines:
 
         # Blockquote
         if line.startswith(">"):
-            line = convert_blockquote(line)
+            is_blockquote = True
 
-        line = Handle_escaping_characters(line)
+        # Handle escaping characters except blockquotes
+        if not is_blockquote:
+            line = Handle_escaping_characters(line)
+        else:
+            line = Handle_escaping_characters(line[1:])
+            line = convert_blockquote(line)
+            is_blockquote = False
         
         # Heading
         if line.startswith("#"):
             html_content.append(convert_heading(line))
             continue
         
+        # Horizontal rule
+        if line.strip() == "---":
+            html_content.append(convert_horizontal_rule(line))
+            continue
+
         # Bold
         if re.search(r"(\*\*|__)(.*?)\1", line):
             line = convert_bold(line)
@@ -139,6 +171,22 @@ def convert_to_html(path_md, path_html):
         # Superscript
         if re.search(r"\^(.*?)\^", line):
             line = convert_superscript(line)
+
+        # Highlight
+        if re.search(r"==(.*?)==", line):
+            line = convert_highlight(line)
+        
+        # Inline Code
+        if re.search(r"`(.*?)`", line):
+            line = convert_inline_code(line)
+
+        # Image
+        if re.search(r"!\[([^\]]+)\]\(([^)]+)\)", line):
+            line = convert_url_image(line)
+
+        # Link
+        if re.search(r"\[([^\]]+)\]\(([^)]+)\)", line):
+            line = convert_url_text(line)
 
         # Append the line
         html_content.append(line.strip())
