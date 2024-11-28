@@ -1,1 +1,1 @@
-# Convert Makdown to HTML using Python
+# Markdown to HTML convertor using Python
