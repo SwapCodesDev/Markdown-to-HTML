@@ -134,6 +134,20 @@ def convert_to_html(path_md, path_html):
         if line.startswith(">"):
             is_blockquote = True
 
+        # Handle Fenced Code Block
+        if line.startswith("```"):
+            if not is_code_block:
+                html_content.append("<pre><code>")
+                is_code_block = True
+            else:
+                html_content.append("</code></pre>")
+                is_code_block = False
+            continue
+
+        if is_code_block:
+            html_content.append(line)
+            continue
+
         # Handle escaping characters except blockquotes
         if not is_blockquote:
             line = Handle_escaping_characters(line)
@@ -187,6 +201,8 @@ def convert_to_html(path_md, path_html):
         # Link
         if re.search(r"\[([^\]]+)\]\(([^)]+)\)", line):
             line = convert_url_text(line)
+
+        # Definition list
 
         # Append the line
         html_content.append(line.strip())

@@ -12,7 +12,7 @@
 - [x] Link
 - [x] Image
 - [ ] Table
-- [ ] Code Block
+- [x] Code Block
 - [ ] Footnote
 - [ ] Heading ID
 - [ ] Definition List
