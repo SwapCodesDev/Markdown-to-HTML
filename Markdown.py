@@ -3,111 +3,197 @@ from bs4 import BeautifulSoup
 
 
 def read(path):
-    with open(path, 'r') as file:
-        lines = file.readlines()  # Read all lines into a list
-    return [line for line in lines]  # Strip newline characters
-
-def write(path, data):
-    with open(path, 'a') as file:
-        file.write(data + '\n')
-
-def convert_md_to_html(md_path, html_path):
-    with open(html_path, 'w') as file:
-        pass
-
-    isCodeBlock = False
-    write(html_path, "<html><body>\n")
-    lines = read(md_path)
-
-    for line in lines:
-        # Handle escaping characters for HTML special characters
-        line = re.sub(r'&', '&amp;', line)
-        line = re.sub(r'<', '&lt;', line)
-        line = re.sub(r'>', '&gt;', line)
-        line = re.sub(r'"', '&quot;', line)
-        line = re.sub(r"'", '&#39;', line)
-
-        if line.startswith("```"):
-            if isCodeBlock:  # If already inside a code block
-                isCodeBlock = False  # End the current code block
-                write(html_path, f"<pre><code>{code}</code></pre>")
-            else:
-                isCodeBlock = True
-                language = re.match(r"```(\w+)", line).group(1)
-                print(f"found: {language}")
-                line = ''
-                
-
-        if isCodeBlock:
-            code += line
-            continue
-        else:
-            code = ''
-
-        if line.startswith("```"):
-                continue
-
-        # 1. Convert headings (e.g., #heading -> <h1>heading</h1>)
-        line = re.sub(r'^(#{1}) (.*)', r'<h1>\2</h1>', line, flags=re.MULTILINE)
-        line = re.sub(r'^(#{2}) (.*)', r'<h2>\2</h2>', line, flags=re.MULTILINE)
-        line = re.sub(r'^(#{3}) (.*)', r'<h3>\2</h3>', line, flags=re.MULTILINE)
-        line = re.sub(r'^(#{4}) (.*)', r'<h4>\2</h4>', line, flags=re.MULTILINE)
-        line = re.sub(r'^(#{5}) (.*)', r'<h5>\2</h5>', line, flags=re.MULTILINE)
-        line = re.sub(r'^(#{6}) (.*)', r'<h6>\2</h6>', line, flags=re.MULTILINE)
-        
-        # 2. Convert bold (e.g., **bold** or __bold__ -> <strong>bold</strong>)
-        line = re.sub(r'(\*\*|__)([^*_\n]+)\1', r'<strong>\2</strong>', line)
-
-        # 3. Convert emphasis (e.g., *italic* or _italic_ -> <em>italic</em>)
-        line = re.sub(r'(\*|_)([^*_\n]+)\1', r'<em>\2</em>', line)
-
-        # 4. Convert inline code (e.g., `code` -> <code>code</code>)
-        line = re.sub(r'`([^`]+)`', r'<code>\1</code>', line)
-
-        # 5. Convert horizontal rule (e.g., --- -> <hr>)
-        line = re.sub(r'---', r'<hr>', line)
-
-        # 6. Convert images (e.g., ![alt](url) -> <img src="url" alt="alt">)
-        line = re.sub(r'!\[([^\]]+)\]\(([^)]+)\)', r'<img src="\2" alt="\1">', line)
-
-        # 7. Convert links (e.g., [link](url) -> <a href="url">link</a>)
-        line = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', line)
-
-        # 8. Line break
-        line = re.sub(r'  +\n', r'<br>\n', line)
-
-        write(html_path, line)
+    try:
+        with open(path, 'r', encoding="utf-8") as file:
+            return file.readlines()  # Read all lines into a list
+    except FileNotFoundError:
+        print(f"Error: The file at {path} was not found.")
+        return None
+    except PermissionError:
+        print(f"Error: Permission denied for file {path}.")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred while reading the file: {e}")
+        return None
 
 
-    write(html_path, "\n</html></body>\n")
+def write(path, data, mode='w'):
+    try:
+        with open(path, mode, encoding="utf-8") as file:
+            file.write(data)
+    except PermissionError:
+        print(f"Error: Permission denied for writing to file {path}.")
+        return False
+    except Exception as e:
+        print(f"An unexpected error occurred while writing to the file: {e}")
+        return False
+    return True
 
 
-
-def beautify_html(file_path):
+def beautify_html(path, output_path=None):
     try:
         # Read the HTML file
-        with open(file_path, "r", encoding="utf-8") as file:
+        with open(path, "r", encoding="utf-8") as file:
             content = file.read()
 
         # Parse and beautify the HTML content
         soup = BeautifulSoup(content, "html.parser")
         beautified_html = soup.prettify()
 
-        # Create a new file name for the output
-        output_file = file_path
-
-        # Save the beautified HTML
+        # Save the beautified HTML to the specified output path or overwrite the original
+        output_file = output_path if output_path else path
         with open(output_file, "w", encoding="utf-8") as file:
             file.write(beautified_html)
 
-        print(f"Beautified HTML saved to: {output_file}")
         return output_file
 
+    except FileNotFoundError:
+        print(f"Error: The file at {path} was not found.")
+        return None
+    except PermissionError:
+        print(f"Error: Permission denied for file {path}.")
+        return None
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred while beautifying the HTML: {e}")
         return None
 
 
+def Handle_escaping_characters(line):
+    line = re.sub(r'&', '&amp;', line)
+    line = re.sub(r'<', '&lt;', line)
+    line = re.sub(r'>', '&gt;', line)
+    line = re.sub(r'"', '&quot;', line)
+    line = re.sub(r"'", '&#39;', line)
+    return line
+
+
+def convert_heading(line):
+    level = len(re.match(r"^#+", line).group())
+    return f"<h{level}>{line[level + 1:].strip()}</h{level}>"
+
+
+def convert_bold(line):
+    return re.sub(r"(\*\*|__)(.*)\1", r"<strong>\2</strong>", line)
+
+
+def convert_italic(line):
+    return re.sub(r"(\*|_)(.*?)\1", r"<em>\2</em>", line)
+
+
+def convert_strikethrough(line):
+    return re.sub(r"~~(.*?)~~", r"<del>\1</del>", line)
+
+
+def convert_blockquote(line):
+    return f"<blockquote><p>{line[1:].strip()}</p></blockquote>"
+
+
+def convert_subscript(line):
+    return re.sub(r"~(.*?)~", r"<sub>\1</sub>", line)
+
+
+def convert_superscript(line):
+    return re.sub(r"\^(.*?)\^", r"<sup>\1</sup>", line)
+
+
+def convert_highlight(line):
+    return re.sub(r"==(.*?)==", r"<mark>\1</mark>", line)
+
+
+def convert_inline_code(line):
+    return re.sub(r"`(.*?)`", r"<code>\1</code>", line)
+
+
+def convert_url_text(line):
+    return re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', line)
+
+
+def convert_url_image(line):
+    return re.sub(r"!\[([^\]]+)\]\(([^)]+)\)", r'<img src="\2" alt="\1">', line)
+
+
+def convert_horizontal_rule(line):
+    return re.sub(r'---', r'<hr>', line)
+
+
+def convert_to_html(path_md, path_html):
+
+    # Initialize variables
+    is_code_block = False
+    is_list = False
+    is_task_list = False
+    is_blockquote = False
+    html_content = []
+    lines = read(path_md)
+    write(path_html, f"<!-- Markdown to HTML -->\n<link rel='stylesheet' href='example.css'>\n")
+
+    # Convert the markdown to HTML
+    for line in lines:
+
+        # Blockquote
+        if line.startswith(">"):
+            is_blockquote = True
+
+        # Handle escaping characters except blockquotes
+        if not is_blockquote:
+            line = Handle_escaping_characters(line)
+        else:
+            line = Handle_escaping_characters(line[1:])
+            line = convert_blockquote(line)
+            is_blockquote = False
+        
+        # Heading
+        if line.startswith("#"):
+            html_content.append(convert_heading(line))
+            continue
+        
+        # Horizontal rule
+        if line.strip() == "---":
+            html_content.append(convert_horizontal_rule(line))
+            continue
+
+        # Bold
+        if re.search(r"(\*\*|__)(.*?)\1", line):
+            line = convert_bold(line)
+        
+        # Italic
+        if re.search(r"(\*|_)(.*?)\1", line):
+            line = convert_italic(line)
+
+        # Strikethrough
+        if re.search(r"~~(.*?)~~", line):
+            line = convert_strikethrough(line)
+
+        # Subscript
+        if re.search(r"~(.*?)~", line):
+            line = convert_subscript(line)
+
+        # Superscript
+        if re.search(r"\^(.*?)\^", line):
+            line = convert_superscript(line)
+
+        # Highlight
+        if re.search(r"==(.*?)==", line):
+            line = convert_highlight(line)
+        
+        # Inline Code
+        if re.search(r"`(.*?)`", line):
+            line = convert_inline_code(line)
+
+        # Image
+        if re.search(r"!\[([^\]]+)\]\(([^)]+)\)", line):
+            line = convert_url_image(line)
+
+        # Link
+        if re.search(r"\[([^\]]+)\]\(([^)]+)\)", line):
+            line = convert_url_text(line)
+
+        # Append the line
+        html_content.append(line.strip())
+
+    for content in html_content:
+        write(path_html, content + '\n', mode='a')
+
+
 # Example usage
-convert_md_to_html('readme.md', 'example.html')
-beautify_html("example.html")
+convert_to_html('example.md', 'example.html')
