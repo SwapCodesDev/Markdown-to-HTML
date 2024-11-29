@@ -280,6 +280,14 @@ def convert_to_html(path_md, path_html):
         if line.startswith(">"):
             is_blockquote = True
 
+        # Handle escaping characters except blockquotes
+        if not is_blockquote:
+            line = Handle_escaping_characters(line)
+        else:
+            line = Handle_escaping_characters(line[1:])
+            line = convert_blockquote(line)
+            is_blockquote = False
+        
         # Handle Fenced Code Block
         if line.startswith("```"):
             if not is_code_block:
@@ -291,17 +299,9 @@ def convert_to_html(path_md, path_html):
             continue
 
         if is_code_block:
-            html_content.append(line)
+            html_content.append(line.rstrip())
             continue
 
-        # Handle escaping characters except blockquotes
-        if not is_blockquote:
-            line = Handle_escaping_characters(line)
-        else:
-            line = Handle_escaping_characters(line[1:])
-            line = convert_blockquote(line)
-            is_blockquote = False
-        
         # Emoji
         if re.search(r":([a-zA-Z0-9_+]+):", line):
             line = convert_emoji(line)
