@@ -234,6 +234,31 @@ def convert_table(lines):
     return table_html
 
 
+def convert_footnote_reference(line, footnotes):
+    """Converts footnote reference to a superscript with a link."""
+    footnote_match = re.search(r"\[\^([^\]]+)\]", line)
+    if footnote_match:
+        footnote_ref = footnote_match.group(1)
+        matching_id = next((key for key, value in footnotes.items() if value[1] == footnote_ref), None)
+        # Add the footnote reference as a superscript with a link to the footnote
+        if any(footnote_ref == value[1] for value in footnotes.values()):
+            return re.sub(r"\[\^([^\]]+)\]", f'<sup><a href="#fn{footnote_ref}" id="{footnote_ref}">^{matching_id}</a></sup>', line)
+    return line
+
+
+def convert_footnote_definition(line, footnotes):
+    """Converts footnote definition to HTML."""
+    footnote_match = re.match(r"\[\^([^\]]+)\]:\s*(.*)", line)
+    if footnote_match:
+        footnote_id = len(footnotes) + 1
+        footnote_ref = footnote_match.group(1)
+        footnote_content = footnote_match.group(2)
+        # Add the footnote definition at the bottom of the document
+        footnotes[footnote_id] = footnote_content, footnote_ref
+        return None  # Don't include the definition in the main content, it will go at the bottom
+    return line
+
+
 def convert_to_html(path_md, path_html):
 
     # Initialize variables
@@ -245,6 +270,9 @@ def convert_to_html(path_md, path_html):
     is_table = False
     indent_stack = []
     table_lines = []
+    footnotes = {}  # Dictionary to store footnote definitions
+    references = None # Footnote references
+    footnote_trigger = False
     current_list_type = None  # Tracks the current list type ('ol' or 'ul')
     current_indent = 0
     html_content = []
@@ -301,6 +329,25 @@ def convert_to_html(path_md, path_html):
         if is_code_block:
             html_content.append(line.rstrip())
             continue
+
+        # Footnotes
+        # Check for footnote definition
+        if re.search(r"\[\^([^\]]+)\]:", line):
+            line = convert_footnote_definition(line, footnotes)
+            footnote_trigger = True
+            continue
+        
+        if footnote_trigger:
+            if references:
+                line = convert_footnote_reference(references, footnotes)
+            references = None
+            footnote_trigger = False
+
+        # Check for footnote reference
+        if re.search(r"\[\^([^\]]+)\]", line):
+            references = line
+            continue
+ 
 
         # Emoji
         if re.search(r":([a-zA-Z0-9_+]+):", line):
@@ -418,6 +465,13 @@ def convert_to_html(path_md, path_html):
         table_html = convert_table(table_lines)
         html_content.append(table_html)
 
+     # Add footnotes at the end
+    if footnotes:
+        html_content.append("<hr><h3>Footnotes</h3><ol>")
+        for footnote_id, content in footnotes.items():
+            html_content.append(f'<li id="fn{content[1]}">{content[0]} <a href="#{content[1]}">^{footnote_id}</a></li>')
+        html_content.append("</ol>")
+    
     for content in html_content:
         write(path_html, content + '\n', mode='a')
     
