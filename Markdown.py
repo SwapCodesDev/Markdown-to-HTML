@@ -118,29 +118,26 @@ def convert_horizontal_rule(line):
 
 def handle_hybrid_list(line, current_indent, indent_stack, html_content, list_type):
     """
-    Handles both ordered and unordered lists, including hybrid structures.
-    Args:
-        line (str): The current line being processed.
-        current_indent (int): Current indentation level.
-        indent_stack (list): Stack to track nesting levels.
-        html_content (list): List of HTML strings to append to.
-        list_type (str): Type of list ('ol' for ordered, 'ul' for unordered).
-
-    Returns:
-        (int, str): Updated current indentation and list type.
+    Handles ordered, unordered, and task lists.
     """
     stripped_line = line.lstrip()
     indent_level = len(line) - len(stripped_line)
     new_list_type = None
 
-    # Determine the list type (ordered or unordered)
-    if re.match(r"^\d+\.\s", stripped_line):
+    # Determine the list type
+    if re.match(r"^\d+\.\s", stripped_line):  # Ordered list
         new_list_type = "ol"
-    elif stripped_line.startswith(('-', '+', '*')):
+    elif stripped_line.startswith(('-', '+', '*')):  # Unordered list
         new_list_type = "ul"
 
+    # Detect task list items
+    task_match = re.match(r"\[(x| )\]\s(.*)", stripped_line[1:].strip())
+    if task_match:
+        task_checked = task_match.group(1) == "x"
+        task_content = task_match.group(2)
+
     if new_list_type:
-        # Handle switching between list types
+        # Switch list types if necessary
         if list_type and new_list_type != list_type:
             while indent_stack:
                 html_content.append(f'</{list_type}>')
@@ -155,13 +152,22 @@ def handle_hybrid_list(line, current_indent, indent_stack, html_content, list_ty
             html_content.append(f'</{new_list_type}>')
             indent_stack.pop()
 
-        # Add list item
-        list_content = (
-            stripped_line[stripped_line.index('.') + 1:].strip()
-            if new_list_type == "ol"
-            else stripped_line[1:].strip()
-        )
-        html_content.append(f"<li>{list_content}</li>")
+        # Add task list item if applicable
+        if task_match:
+            checkbox_html = (
+                '<input type="checkbox" checked disabled>'
+                if task_checked
+                else '<input type="checkbox" disabled>'
+            )
+            html_content.append(f"<li style='list-style-type: none;'>{checkbox_html} {task_content}</li>")
+        else:
+            # Add regular list item
+            list_content = (
+                stripped_line[stripped_line.index('.') + 1:].strip()
+                if new_list_type == "ol"
+                else stripped_line[1:].strip()
+            )
+            html_content.append(f"<li>{list_content}</li>")
         return indent_level, new_list_type
 
     # Close any open lists if not a list item
@@ -171,6 +177,52 @@ def handle_hybrid_list(line, current_indent, indent_stack, html_content, list_ty
     return 0, None
 
 
+def convert_table(lines):
+    table_html = '<table style="border: 1px solid black; border-collapse: collapse;">\n'
+    header_row = None
+    alignments = []
+    
+    # Iterate through each line to construct the table
+    for i, line in enumerate(lines):
+        line = line.strip()
+
+        # Skip empty lines or fully separator lines (lines containing only dashes)
+        if not line or '-' * len(line) == line:  # Skip lines made of dashes (like separator rows)
+            continue
+
+        # If it's the first line with data, treat it as the header row
+        if i == 0:
+            columns = [col.strip() for col in line.split('|') if col.strip()]
+            header_row = columns
+            table_html += "  <thead>\n    <tr>\n"
+            for col in header_row:
+                table_html += f"      <th style='border: 1px solid black; padding: 5px;'>{col}</th>\n"
+            table_html += "    </tr>\n  </thead>\n"
+            continue
+        
+        # If it's a separator line (the second line), detect the alignments
+        if i == 1:
+            alignments = ['left' if ':' not in col else ('center' if col.startswith(':') and col.endswith(':') else 'right') for col in line.split('|') if col.strip()]
+            continue
+        
+        # Data row: Parse and generate <td> cells
+        columns = [col.strip() for col in line.split('|') if col.strip()]
+        table_html += "  <tbody>\n    <tr>\n"
+        
+        for col, alignment in zip(columns, alignments):
+            if alignment == 'left':
+                table_html += f"      <td style='border: 1px solid black; padding: 5px; text-align: left;'>{col}</td>\n"
+            elif alignment == 'center':
+                table_html += f"      <td style='border: 1px solid black; padding: 5px; text-align: center;'>{col}</td>\n"
+            else:  # right alignment
+                table_html += f"      <td style='border: 1px solid black; padding: 5px; text-align: right;'>{col}</td>\n"
+        
+        table_html += "    </tr>\n  </tbody>\n"
+
+    table_html += '</table>\n'
+    return table_html
+
+
 def convert_to_html(path_md, path_html):
 
     # Initialize variables
@@ -178,9 +230,10 @@ def convert_to_html(path_md, path_html):
     is_def_list = False
     is_ordered_list = False
     is_unordered_list = False
-    is_task_list = False
     is_blockquote = False
+    is_table = False
     indent_stack = []
+    table_lines = []
     current_list_type = None  # Tracks the current list type ('ol' or 'ul')
     current_indent = 0
     html_content = []
@@ -309,6 +362,19 @@ def convert_to_html(path_md, path_html):
                 is_unordered_list = False
                 html_content.append('</ul>')
         
+        # Handle table
+        if "|" in line:
+            is_table = True
+            table_lines.append(line.strip())
+            line = ''
+        else:
+            # If we were collecting table lines, convert the table and reset the flag
+            if is_table:
+                table_html = convert_table(table_lines)
+                html_content.append(table_html)
+                table_lines = []  # Reset table lines
+                is_table = False
+
         # Definition list
         if line.startswith(":"):
             if not is_def_list:
@@ -331,6 +397,11 @@ def convert_to_html(path_md, path_html):
 
     if is_def_list:  # Ensure closing <dl> if still in definition list at the end
         html_content.append("</dl>")
+
+    # If a table is still being processed at the end of the file, process it
+    if is_table:
+        table_html = convert_table(table_lines)
+        html_content.append(table_html)
 
     for content in html_content:
         write(path_html, content + '\n', mode='a')

@@ -11,13 +11,13 @@
 - [x] Horizontal Rule
 - [x] Link
 - [x] Image
-- [ ] Table
+- [x] Table
 - [x] Code Block
 - [ ] Footnote
 - [ ] Heading ID
 - [x] Definition List
 - [x] Strikethrough
-- [ ] Task List
+- [x] Task List
 - [ ] Emoji
 - [x] Highlight
 - [x] Subscript

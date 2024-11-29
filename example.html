@@ -44,6 +44,13 @@ These are the elements outlined in John Gruber’s original design document. All
 
 <ol>
 <li>First item</li>
+<ol>
+<li>indent</li>
+<ol>
+<li>indent two</li>
+</ol>
+<li>indent</li>
+</ol>
 <li>Second item</li>
 <li>Third item</li>
 </ol>
@@ -52,7 +59,17 @@ These are the elements outlined in John Gruber’s original design document. All
 
 <ul>
 <li>First item</li>
+<ul>
+<li>indent</li>
+</ul>
 <li>Second item</li>
+<ul>
+<li>indent</li>
+<ul>
+<li>more indent</li>
+</ul>
+<li>indent</li>
+</ul>
 <li>Third item</li>
 </ul>
 
@@ -79,10 +96,32 @@ These elements extend the basic syntax by adding additional features. Not all Ma
 
 <h3>Table</h3>
 
-| Syntax | Description |
-| ----------- | ----------- |
-| Header | Title |
-| Paragraph | Text |
+
+
+
+
+<table style="border: 1px solid black; border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style='border: 1px solid black; padding: 5px;'>Syntax</th>
+      <th style='border: 1px solid black; padding: 5px;'>Description</th>
+      <th style='border: 1px solid black; padding: 5px;'>More</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style='border: 1px solid black; padding: 5px; text-align: left;'>Header</td>
+      <td style='border: 1px solid black; padding: 5px; text-align: left;'>Title</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <td style='border: 1px solid black; padding: 5px; text-align: left;'>Paragraph</td>
+      <td style='border: 1px solid black; padding: 5px; text-align: left;'>Text</td>
+    </tr>
+  </tbody>
+</table>
+
 
 <h3>Fenced Code Block</h3>
 
@@ -125,9 +164,9 @@ Here&#39;s a sentence with a footnote. [^1]
 <h3>Task List</h3>
 
 <ul>
-<li>[x] Write the press release</li>
-<li>[ ] Update the website</li>
-<li>[ ] Contact the media</li>
+<li style='list-style-type: none;'><input type="checkbox" checked disabled> Write the press release</li>
+<li style='list-style-type: none;'><input type="checkbox" disabled> Update the website</li>
+<li style='list-style-type: none;'><input type="checkbox" disabled> Contact the media</li>
 </ul>
 
 <h3>Emoji</h3>

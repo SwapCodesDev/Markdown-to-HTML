@@ -32,13 +32,20 @@ These are the elements outlined in John Gruber’s original design document. All
 ### Ordered List
 
 1. First item
+  1. indent
+    1. indent two
+  2. indent
 2. Second item
 3. Third item
 
 ### Unordered List
 
 - First item
+  - indent
 - Second item
+  - indent
+    - more indent
+  - indent
 - Third item
 
 ### Code
@@ -63,8 +70,8 @@ These elements extend the basic syntax by adding additional features. Not all Ma
 
 ### Table
 
-| Syntax | Description |
-| ----------- | ----------- |
+| Syntax | Description | More |
+| ----------- | ----------- | ------ |
 | Header | Title |
 | Paragraph | Text |
 
