@@ -1,5 +1,14 @@
-<!-- Markdown to HTML -->
-<link rel='stylesheet' href='example.css'>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown to HTML</title>
+  <!-- Highlight.js Styles -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+  <link rel='stylesheet' href='example.css'>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
 <h1>Markdown Cheat Sheet</h1>
 
 Thanks for visiting <a href="https://www.markdownguide.org">The Markdown Guide</a>!
@@ -33,15 +42,19 @@ These are the elements outlined in John Gruber’s original design document. All
 
 <h3>Ordered List</h3>
 
-1. First item
-2. Second item
-3. Third item
+<ol>
+<li>First item</li>
+<li>Second item</li>
+<li>Third item</li>
+</ol>
 
 <h3>Unordered List</h3>
 
-- First item
-- Second item
-- Third item
+<ul>
+<li>First item</li>
+<li>Second item</li>
+<li>Third item</li>
+</ul>
 
 <h3>Code</h3>
 
@@ -102,13 +115,8 @@ Here&#39;s a sentence with a footnote. [^1]
 <dt>term 1</dt>
 <dd>definition 1</dd>
 <dd>definition 2</dd>
-<dt>term 2</dt>
-<dd>definition 3</dd>
-<dd>definition 4</dd>
-<dt>term 1</dt>
-<dd>definition 1</dd>
-<dd>definition 2</dd>
 </dl>
+
 
 <h3>Strikethrough</h3>
 
@@ -116,9 +124,11 @@ Here&#39;s a sentence with a footnote. [^1]
 
 <h3>Task List</h3>
 
-- [x] Write the press release
-- [ ] Update the website
-- [ ] Contact the media
+<ul>
+<li>[x] Write the press release</li>
+<li>[ ] Update the website</li>
+<li>[ ] Contact the media</li>
+</ul>
 
 <h3>Emoji</h3>
 
@@ -137,3 +147,6 @@ H<sub>2</sub>O
 <h3>Superscript</h3>
 
 X<sup>2</sup>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

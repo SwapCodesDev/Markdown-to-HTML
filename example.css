@@ -36,3 +36,10 @@ dd {
 dd:not(:last-of-type) {
   margin-bottom: 10px;
 }
+
+pre code {
+  padding: 15px;            /* Inner spacing */
+  border-radius: 5px;       /* Rounded corners */
+  display: block;           /* Block layout */
+  overflow-x: auto;         /* Horizontal scroll for long lines */
+}

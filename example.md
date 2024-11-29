@@ -93,12 +93,7 @@ Here's a sentence with a footnote. [^1]
 term 1
 : definition 1
 : definition 2
-term 2
-: definition 3
-: definition 4
-term 1
-: definition 1
-: definition 2
+
 
 ### Strikethrough
 

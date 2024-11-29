@@ -116,17 +116,98 @@ def convert_horizontal_rule(line):
     return re.sub(r'---', r'<hr>', line)
 
 
+def handle_hybrid_list(line, current_indent, indent_stack, html_content, list_type):
+    """
+    Handles both ordered and unordered lists, including hybrid structures.
+    Args:
+        line (str): The current line being processed.
+        current_indent (int): Current indentation level.
+        indent_stack (list): Stack to track nesting levels.
+        html_content (list): List of HTML strings to append to.
+        list_type (str): Type of list ('ol' for ordered, 'ul' for unordered).
+
+    Returns:
+        (int, str): Updated current indentation and list type.
+    """
+    stripped_line = line.lstrip()
+    indent_level = len(line) - len(stripped_line)
+    new_list_type = None
+
+    # Determine the list type (ordered or unordered)
+    if re.match(r"^\d+\.\s", stripped_line):
+        new_list_type = "ol"
+    elif stripped_line.startswith(('-', '+', '*')):
+        new_list_type = "ul"
+
+    if new_list_type:
+        # Handle switching between list types
+        if list_type and new_list_type != list_type:
+            while indent_stack:
+                html_content.append(f'</{list_type}>')
+                indent_stack.pop()
+            list_type = None
+
+        # Handle nested or continued list
+        if indent_level > current_indent:
+            html_content.append(f'<{new_list_type}>')
+            indent_stack.append(indent_level)
+        while indent_stack and indent_level < indent_stack[-1]:
+            html_content.append(f'</{new_list_type}>')
+            indent_stack.pop()
+
+        # Add list item
+        list_content = (
+            stripped_line[stripped_line.index('.') + 1:].strip()
+            if new_list_type == "ol"
+            else stripped_line[1:].strip()
+        )
+        html_content.append(f"<li>{list_content}</li>")
+        return indent_level, new_list_type
+
+    # Close any open lists if not a list item
+    while indent_stack:
+        html_content.append(f'</{list_type}>')
+        indent_stack.pop()
+    return 0, None
+
+
 def convert_to_html(path_md, path_html):
 
     # Initialize variables
     is_code_block = False
     is_def_list = False
-    is_list = False
+    is_ordered_list = False
+    is_unordered_list = False
     is_task_list = False
     is_blockquote = False
+    indent_stack = []
+    current_list_type = None  # Tracks the current list type ('ol' or 'ul')
+    current_indent = 0
     html_content = []
     lines = read(path_md)
-    write(path_html, f"<!-- Markdown to HTML -->\n<link rel='stylesheet' href='example.css'>\n")
+
+    html_initial_body = (
+    "<!DOCTYPE html>\n"
+    "<html lang=\"en\">\n"
+    "<head>\n"
+    "  <meta charset=\"UTF-8\">\n"
+    "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+    "  <title>Markdown to HTML</title>\n"
+    "  <!-- Highlight.js Styles -->\n"
+    "  <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css\">\n"
+    "  <link rel='stylesheet' href='example.css'>\n"
+    "  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>\n"
+    "  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js\"></script>\n"
+    )
+
+    html_end_body = (
+        "  <script>hljs.highlightAll();</script>\n"
+        "</body>\n"
+        "</html>"
+    )
+
+
+    write(path_html, html_initial_body)
 
     # Convert the markdown to HTML
     for line in lines:
@@ -203,6 +284,31 @@ def convert_to_html(path_md, path_html):
         if re.search(r"\[([^\]]+)\]\(([^)]+)\)", line):
             line = convert_url_text(line)
 
+        # Ordered and unordered list
+        if re.match(r"^\d+\.\s", line.lstrip()):  # Check for ordered list
+            if not is_ordered_list:
+                is_ordered_list = True
+                html_content.append('<ol>')
+            current_indent, current_list_type = handle_hybrid_list(
+                line, current_indent, indent_stack, html_content, current_list_type
+            )
+            continue  # Skip to the next line after processing
+        elif line.lstrip().startswith(('-', '+', '*')):  # Check for unordered list
+            if not is_unordered_list:
+                is_unordered_list = True
+                html_content.append('<ul>')
+            current_indent, current_list_type = handle_hybrid_list(
+                line, current_indent, indent_stack, html_content, current_list_type
+            )
+            continue  # Skip to the next line after processing
+        else:
+            if is_ordered_list:
+                is_ordered_list = False
+                html_content.append('</ol>')
+            if is_unordered_list:
+                is_unordered_list = False
+                html_content.append('</ul>')
+        
         # Definition list
         if line.startswith(":"):
             if not is_def_list:
@@ -228,6 +334,8 @@ def convert_to_html(path_md, path_html):
 
     for content in html_content:
         write(path_html, content + '\n', mode='a')
+    
+    write(path_html, html_end_body, mode='a')
 
 
 # Example usage
