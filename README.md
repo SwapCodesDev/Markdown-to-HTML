@@ -18,7 +18,7 @@
 - [x] Definition List
 - [x] Strikethrough
 - [x] Task List
-- [ ] Emoji
+- [x] Emoji
 - [x] Highlight
 - [x] Subscript
 - [x] Superscript

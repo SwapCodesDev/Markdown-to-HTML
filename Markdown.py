@@ -1,5 +1,6 @@
 import re
 from bs4 import BeautifulSoup
+import emoji
 
 
 def read(path):
@@ -87,6 +88,16 @@ def convert_strikethrough(line):
 def convert_blockquote(line):
     return f"<blockquote><p>{line[1:].strip()}</p></blockquote>"
 
+
+def convert_emoji(line):
+    try:
+        line = emoji.emojize(line)
+    except ValueError:
+        pass
+    else:
+        line = emoji.emojize(line, language = "alias")
+    return line
+    
 
 def convert_subscript(line):
     return re.sub(r"~(.*?)~", r"<sub>\1</sub>", line)
@@ -291,6 +302,10 @@ def convert_to_html(path_md, path_html):
             line = convert_blockquote(line)
             is_blockquote = False
         
+        # Emoji
+        if re.search(r":([a-zA-Z0-9_+]+):", line):
+            line = convert_emoji(line)
+
         # Heading
         if line.startswith("#"):
             html_content.append(convert_heading(line))
