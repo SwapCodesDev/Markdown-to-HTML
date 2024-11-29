@@ -5,8 +5,8 @@
 - [x] Bold
 - [x] Italic
 - [x] Blockquote
-- [ ] Ordered List
-- [ ] Unordered List
+- [x] Ordered List
+- [x] Unordered List
 - [x] Code
 - [x] Horizontal Rule
 - [x] Link
