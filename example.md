@@ -87,9 +87,10 @@ These elements extend the basic syntax by adding additional features. Not all Ma
 
 ### Footnote
 
-Here's a sentence with a footnote. [^1]
+Here's a sentence with a footnote. [^a]
 
-[^1]: This is the footnote.
+[^a]: This is the footnote.
+
 
 ### Heading ID
 
