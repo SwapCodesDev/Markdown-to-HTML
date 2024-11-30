@@ -287,7 +287,7 @@ def convert_to_html(path_md, path_html):
     "  <title>Markdown to HTML</title>\n"
     "  <!-- Highlight.js Styles -->\n"
     "  <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css\">\n"
-    "  <link rel='stylesheet' href='example.css'>\n"
+    "  <link rel='stylesheet' href='resources/markdown.css'>\n"
     "  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>\n"
     "  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js\"></script>\n"
     )
