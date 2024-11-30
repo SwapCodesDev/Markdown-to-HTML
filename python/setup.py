@@ -9,13 +9,14 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/SwapCodesDev/Markdown-to-HTML",
-    packages=find_packages(),
+    py_modules=["markdown"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",  # Match the LICENSE file
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.6",
-    include_package_data=True,  # Ensures additional files like README.md are included
     install_requires=['beautifulsoup4', 'emoji'],  # Add dependencies here if needed
+    package_data={'markdown':['README.md', 'LICENSE']},
+    license="MIT",
 )
