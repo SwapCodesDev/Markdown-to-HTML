@@ -478,5 +478,4 @@ def convert_to_html(path_md, path_html):
     write(path_html, html_end_body, mode='a')
 
 
-# Example usage
-convert_to_html('example.md', 'example.html')
+# Example usage: convert_to_html('example.md', 'example.html')
