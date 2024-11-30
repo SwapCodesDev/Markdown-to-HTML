@@ -17,5 +17,5 @@ setup(
     ],
     python_requires=">=3.6",
     include_package_data=True,  # Ensures additional files like README.md are included
-    install_requires=['beautifulsoup4', 'emoji', 're'],  # Add dependencies here if needed
+    install_requires=['beautifulsoup4', 'emoji'],  # Add dependencies here if needed
 )
